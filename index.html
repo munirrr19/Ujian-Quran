@@ -55,8 +55,10 @@ td.n,th.n{text-align:right}tr.click{cursor:pointer}.dot{color:var(--ok)}.none{co
 </section>
 </main>
 <script>
-// Senarai pelajar & markah awal diambil dari Google Sheet "ISI MARKAH"
-const S=[
+// Tampal URL Web App Apps Script di sini (lihat README). Kosong = guna data contoh + simpanan pelayar sahaja.
+const API='';
+// Senarai pelajar & markah awal (sandaran) diambil dari Google Sheet "ISI MARKAH"
+let S=[
 ["E3225","MUHAMMAD AQEEQ EL HUMAM BIN MAZLAN",[9,9,8,8,7,7,8,8],10,3],
 ["E3425","MUHAMMAD FATEH IMRAN BIN MOHD NAZIM",[10,10,10,10,10,10,10,9],15,5],
 ["E3625","MUHAMMAD HAFIY FAYYAD BIN MOHD NOOR",[9,9,9,10,4,5,5,5],10,4],
@@ -85,13 +87,25 @@ const num=v=>v===''||v==null||isNaN(v)?0:+v;
 const r1=x=>Math.round(x*10)/10;
 function calc(r){const h=r1([0,1,2,3,4,5,6,7].reduce((a,i)=>a+num(r['h'+i]),0));const t=r1(h+num(r.tj)+num(r.fs));return{h,t,p:r1(t*.4)}}
 let cur=0;
-$('sel').innerHTML=S.map((s,i)=>`<option value="${i}">${i+1}. ${s[1]}</option>`).join('');
+const buildSel=()=>{$('sel').innerHTML=S.map((s,i)=>`<option value="${i}">${i+1}. ${s[1]}</option>`).join('')};
+buildSel();
 $('inputs').innerHTML=FIELDS.map(f=>`<div><label>${f.l} /${f.max}</label><input type="number" inputmode="decimal" step="0.5" min="0" max="${f.max}" data-k="${f.k}" data-max="${f.max}"></div>`).join('');
 const ins=[...document.querySelectorAll('#inputs input')];
 function load(){const r=data[S[cur][0]];$('sel').value=cur;ins.forEach(i=>i.value=r[i.dataset.k]??'');$('cat').value=r.cat||'';tot();$('msg').textContent=''}
 function tot(){const r={};ins.forEach(i=>r[i.dataset.k]=i.value);const c=calc(r);$('sH').textContent=c.h;$('sT').textContent=c.t;$('sP').textContent=c.p}
 ins.forEach(i=>i.addEventListener('input',()=>{if(num(i.value)>+i.dataset.max)i.value=i.dataset.max;if(num(i.value)<0)i.value=0;tot()}));
-function save(){const r={cat:$('cat').value};ins.forEach(i=>r[i.dataset.k]=i.value===''?'':+i.value);data[S[cur][0]]=r;persist();$('msg').textContent='✓ Disimpan';render()}
+async function save(){
+  const r={cat:$('cat').value};ins.forEach(i=>r[i.dataset.k]=i.value===''?'':+i.value);
+  const no=S[cur][0];data[no]=r;persist();render();
+  if(!API){$('msg').textContent='✓ Disimpan (pelayar sahaja)';return}
+  $('msg').textContent='Menyimpan ke Google Sheet…';
+  try{
+    const body={pass:PASS,no,h:[0,1,2,3,4,5,6,7].map(i=>r['h'+i]),tj:r.tj,fs:r.fs,cat:r.cat};
+    const res=await(await fetch(API,{method:'POST',body:JSON.stringify(body)})).json();
+    if(res.error)throw new Error(res.error);
+    $('msg').textContent='✓ Disimpan ke Google Sheet';
+  }catch(e){$('msg').textContent='✗ Gagal simpan ke Sheet: '+e.message}
+}
 $('sel').onchange=e=>{cur=+e.target.value;load()};
 $('save').onclick=save;
 $('prev').onclick=()=>{save();cur=(cur+S.length-1)%S.length;load()};
@@ -113,7 +127,25 @@ $('csv').onclick=()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='keputusan-syafawi.csv';a.click();
 };
 $('reset').onclick=()=>{if(confirm('Padam semua markah dan kembali ke data asal Google Sheet?')){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}};
-load();render();
+let PASS='';
+async function boot(){
+  if(API){
+    try{PASS=localStorage.getItem(KEY+'-pass')||''}catch(e){}
+    for(;;){
+      if(!PASS){PASS=prompt('Masukkan kod akses:')||'';if(!PASS)break}
+      try{
+        const res=await(await fetch(API+'?pass='+encodeURIComponent(PASS))).json();
+        if(res.error){PASS='';alert(res.error);try{localStorage.removeItem(KEY+'-pass')}catch(e){}continue}
+        S=res.students.map(x=>[x.no,x.nama,x.h,x.tj,x.fs]);
+        data={};res.students.forEach(x=>{const r={cat:x.cat};x.h.forEach((v,i)=>r['h'+i]=v);r.tj=x.tj;r.fs=x.fs;data[x.no]=r});
+        try{localStorage.setItem(KEY+'-pass',PASS)}catch(e){}
+        buildSel();break;
+      }catch(e){alert('Tidak dapat sambung ke Google Sheet: '+e.message);break}
+    }
+  }
+  load();render();
+}
+boot();
 </script>
 </body>
 </html>
