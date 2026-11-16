@@ -27,7 +27,12 @@ button.s{background:var(--card);color:var(--ink);border:1px solid var(--line);bo
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}th{font-size:12px;color:var(--blue);background:var(--soft)}
 .ptitle{display:none}
-select{font-size:13px;padding:8px}
+.pick{width:100%;text-align:left;font:inherit;font-size:12.5px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:var(--ink);cursor:pointer}
+.ov{position:fixed;inset:0;background:rgba(18,48,58,.45);display:none;z-index:20;align-items:flex-end}
+.ov.on{display:flex}
+.sheet{background:var(--card);width:100%;max-height:70vh;overflow:auto;border-radius:14px 14px 0 0;padding:6px}
+.sheet button{display:block;width:100%;text-align:left;font:inherit;font-size:12px;padding:11px 10px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);cursor:pointer}
+.sheet button.on{background:var(--soft);font-weight:600;color:var(--blue)}
 td.nm{font-size:12px}
 td.n,th.n{text-align:right}tr.click{cursor:pointer}.dot{color:var(--ok)}.none{color:var(--mut)}
 .wrap{overflow-x:auto}.hide{display:none}.msg{color:var(--ok);font-size:13px;min-height:18px;margin-top:6px}
@@ -53,7 +58,7 @@ td.n,th.n{text-align:right}tr.click{cursor:pointer}.dot{color:var(--ok)}.none{co
 <nav><button id="t1" class="on">Syafawi 40%</button><button id="t3">Bertulis 60%</button><button id="t2">Keputusan</button></nav>
 <main>
 <section id="v1">
-  <div class="card"><label>Pilih pelajar</label><select id="sel"></select></div>
+  <div class="card"><label>Pilih pelajar</label><select id="sel" hidden></select><button type="button" class="pick" id="pk1"></button></div>
   <div class="card">
     <div class="grid" id="inputs"></div>
     <div class="tot">
@@ -67,7 +72,7 @@ td.n,th.n{text-align:right}tr.click{cursor:pointer}.dot{color:var(--ok)}.none{co
   </div>
 </section>
 <section id="v3" class="hide">
-  <div class="card"><label>Pilih pelajar</label><select id="selW"></select></div>
+  <div class="card"><label>Pilih pelajar</label><select id="selW" hidden></select><button type="button" class="pick" id="pk2"></button></div>
   <div class="card">
     <label>Markah mentah bertulis /100</label>
     <input id="wIn" type="number" inputmode="decimal" step="0.5" min="0" max="100" placeholder="0 – 100">
@@ -82,6 +87,7 @@ td.n,th.n{text-align:right}tr.click{cursor:pointer}.dot{color:var(--ok)}.none{co
   <div class="row"><button class="p" id="print">Cetak</button><button class="s" id="csv">Muat turun CSV</button><button class="s" id="reset">Padam semua</button></div>
 </section>
 </main>
+<div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
 <script>
 // Tampal URL Web App Apps Script di sini (lihat README). Kosong = guna data contoh + simpanan pelayar sahaja.
 const API='https://script.google.com/macros/s/AKfycbySdB1J0iinHm3uUGj9Qq-aIXc_JjaL9PsW6vpPrsT5WZ43kaC2LBvWObw98ASZXrobrA/exec';
@@ -122,7 +128,7 @@ const buildSel=()=>{const o=S.map((s,i)=>`<option value="${i}">${s[1]}</option>`
 buildSel();
 $('inputs').innerHTML=FIELDS.map(f=>`<div><label>${f.l} /${f.max}</label><input type="number" inputmode="decimal" step="0.5" min="0" max="${f.max}" data-k="${f.k}" data-max="${f.max}"></div>`).join('');
 const ins=[...document.querySelectorAll('#inputs input')];
-function load(){const r=data[S[cur][0]];$('sel').value=cur;ins.forEach(i=>i.value=r[i.dataset.k]??'');$('cat').value=r.cat||'';tot();$('msg').textContent=''}
+function load(){const r=data[S[cur][0]];$('sel').value=cur;$('pk1').textContent=S[cur][1]+'  ▾';ins.forEach(i=>i.value=r[i.dataset.k]??'');$('cat').value=r.cat||'';tot();$('msg').textContent=''}
 function tot(){const r={};ins.forEach(i=>r[i.dataset.k]=i.value);const c=calc(r);$('sH').textContent=c.h;$('sT').textContent=c.t;$('sP').textContent=c.p}
 ins.forEach(i=>i.addEventListener('input',()=>{if(num(i.value)>+i.dataset.max)i.value=i.dataset.max;if(num(i.value)<0)i.value=0;tot()}));
 async function save(){
@@ -143,7 +149,10 @@ $('prev').onclick=()=>{save();cur=(cur+S.length-1)%S.length;load()};
 $('next').onclick=()=>{save();cur=(cur+1)%S.length;load()};
 // ---- Bertulis 60% ----
 let curW=0;
-function loadW(){const no=S[curW][0];$('selW').value=curW;$('wIn').value=W[no]??'';showW();$('msgW').textContent=''}
+function pickList(cb,idx){const ov=$('ov'),sh=$('sheet');sh.innerHTML=S.map((s,i)=>`<button type="button" data-i="${i}" class="${i===idx?'on':''}">${s[1]}</button>`).join('');ov.classList.add('on');sh.onclick=e=>{const b=e.target.closest('button[data-i]');if(b){ov.classList.remove('on');cb(+b.dataset.i)}};ov.onclick=e=>{if(e.target===ov)ov.classList.remove('on')}}
+$('pk1').onclick=()=>pickList(i=>{cur=i;load()},cur);
+$('pk2').onclick=()=>pickList(i=>{curW=i;loadW()},curW);
+function loadW(){const no=S[curW][0];$('selW').value=curW;$('pk2').textContent=S[curW][1]+'  ▾';$('wIn').value=W[no]??'';showW();$('msgW').textContent=''}
 function showW(){const no=S[curW][0],v=$('wIn').value,x=w60(v);$('w60').textContent=x;$('wJum').textContent=r2(calc(data[no]).p+x)}
 $('wIn').addEventListener('input',()=>{const i=$('wIn');if(num(i.value)>100)i.value=100;if(num(i.value)<0)i.value=0;showW()});
 async function saveW(){
