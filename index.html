@@ -4,12 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ujian Syafawi Al-Quran</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#faf6ea">
 <style>
 :root{color-scheme:light;--bg:#faf6ea;--card:#fffdf5;--ink:#12303a;--mut:#5f7a80;--pri:#0a7a5c;--blue:#1d5f8f;--line:#e6dfc9;--bad:#b3261e;--ok:#0a7a5c;--soft:#f1ecd9}
 *{box-sizing:border-box}
 body{margin:0;font:16px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--ink)}
-header{background:linear-gradient(120deg,var(--blue),var(--pri));color:#fff;padding:16px}
-header h1{margin:0;font-size:18px}header p{margin:2px 0 0;font-size:13px;opacity:.85}
+header{background:var(--card);padding:10px 16px;display:flex;align-items:center;gap:12px;border-bottom:4px solid transparent;border-image:linear-gradient(90deg,var(--blue),var(--pri)) 1}
+header img{height:56px;width:auto;display:block}
+header h1{margin:0;font-size:18px;color:var(--blue)}header p{margin:2px 0 0;font-size:13px;color:var(--mut)}
 nav{display:flex;gap:6px;padding:10px 16px;position:sticky;top:0;background:var(--bg);z-index:5}
 nav button{flex:1;padding:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;font:inherit;cursor:pointer}
 nav button.on{background:linear-gradient(120deg,var(--blue),var(--pri));color:#fff;border-color:transparent}
@@ -54,7 +58,7 @@ td.n,th.n{text-align:right}tr.click{cursor:pointer}.dot{color:var(--ok)}.none{co
 </style>
 </head>
 <body>
-<header><h1>Ujian Syafawi Al-Quran</h1><p>Halaqah Ustaz Munir (2B 2026)</p></header>
+<header><img src="assets/logo.png" alt="Logo ULBS"><div><h1>Ujian Syafawi Al-Quran</h1><p>Halaqah Ustaz Munir (2B 2026)</p></div></header>
 <nav><button id="t1" class="on">Syafawi 40%</button><button id="t3">Bertulis 60%</button><button id="t2">Keputusan</button></nav>
 <main>
 <section id="v1">
@@ -82,7 +86,7 @@ td.n,th.n{text-align:right}tr.click{cursor:pointer}.dot{color:var(--ok)}.none{co
   </div>
 </section>
 <section id="v2" class="hide">
-  <div class="ptitle"><h2>Keputusan Peperiksaan Al-Quran</h2><p>Halaqah Ustaz Munir (2B 2026) · <span id="pdate"></span></p></div>
+  <div class="ptitle"><img src="assets/logo.png" alt="" style="height:60px;display:block;margin:0 auto 6px"><h2>Keputusan Peperiksaan Al-Quran</h2><p>Halaqah Ustaz Munir (2B 2026) · <span id="pdate"></span></p></div>
   <div class="card wrap"><table id="tbl"></table></div>
   <div class="row"><button class="p" id="print">Cetak</button><button class="s" id="csv">Muat turun CSV</button><button class="s" id="reset">Padam semua</button></div>
 </section>
