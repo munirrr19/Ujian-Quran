@@ -5,30 +5,45 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ujian Syafawi Al-Quran</title>
 <style>
-:root{--bg:#f4f7f5;--card:#fff;--ink:#1b2a22;--mut:#6b7c72;--pri:#0f6b4a;--line:#dde6e1;--bad:#b3261e;--ok:#0f6b4a}
-@media(prefers-color-scheme:dark){:root{--bg:#101815;--card:#18231e;--ink:#e6efe9;--mut:#93a69b;--pri:#3fbf8a;--line:#2a3a33;--bad:#ff8a80;--ok:#3fbf8a}}
+:root{color-scheme:light;--bg:#faf6ea;--card:#fffdf5;--ink:#12303a;--mut:#5f7a80;--pri:#0a7a5c;--blue:#1d5f8f;--line:#e6dfc9;--bad:#b3261e;--ok:#0a7a5c;--soft:#f1ecd9}
 *{box-sizing:border-box}
 body{margin:0;font:16px/1.4 system-ui,sans-serif;background:var(--bg);color:var(--ink)}
-header{background:var(--pri);color:#fff;padding:14px 16px}
+header{background:linear-gradient(120deg,var(--blue),var(--pri));color:#fff;padding:16px}
 header h1{margin:0;font-size:18px}header p{margin:2px 0 0;font-size:13px;opacity:.85}
 nav{display:flex;gap:6px;padding:10px 16px;position:sticky;top:0;background:var(--bg);z-index:5}
 nav button{flex:1;padding:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:8px;font:inherit;cursor:pointer}
-nav button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+nav button.on{background:linear-gradient(120deg,var(--blue),var(--pri));color:#fff;border-color:transparent}
 main{padding:0 16px 40px;max-width:900px;margin:auto}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
 input,select{font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px;width:100%}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
 label{font-size:12px;color:var(--mut);display:block;margin-bottom:3px}
 .tot{display:flex;justify-content:space-between;gap:8px;text-align:center;margin-top:12px}
-.tot div{flex:1;background:var(--bg);border-radius:8px;padding:8px}.tot b{display:block;font-size:20px;color:var(--pri)}
+.tot div{flex:1;background:var(--soft);border-radius:8px;padding:8px}.tot b{display:block;font-size:20px;color:var(--blue)}
 .tot span{font-size:11px;color:var(--mut)}
 .row{display:flex;gap:8px;margin-top:12px}
-button.p{background:var(--pri);color:#fff;border:0;border-radius:8px;padding:11px 14px;font:inherit;cursor:pointer;flex:1}
+button.p{background:linear-gradient(120deg,var(--blue),var(--pri));color:#fff;border:0;border-radius:8px;padding:11px 14px;font:inherit;cursor:pointer;flex:1}
 button.s{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:11px 14px;font:inherit;cursor:pointer}
 table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}th{font-size:12px;color:var(--mut)}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}th{font-size:12px;color:var(--blue);background:var(--soft)}
+.ptitle{display:none}
 td.n,th.n{text-align:right}tr.click{cursor:pointer}.dot{color:var(--ok)}.none{color:var(--mut)}
 .wrap{overflow-x:auto}.hide{display:none}.msg{color:var(--ok);font-size:13px;min-height:18px;margin-top:6px}
+@media(max-width:600px){.hm{display:none}table{font-size:12px}th,td{padding:6px 4px}th{font-size:11px}.card.wrap{padding:8px}}
+@page{size:A4 landscape;margin:12mm}
+@media print{
+  body{background:#fff;font-size:12px}
+  header,nav,.row,#v1,#v3{display:none!important}
+  #v2{display:block!important}
+  main{padding:0;max-width:none}
+  .card{border:0;padding:0}
+  .wrap{overflow:visible}
+  .ptitle{display:block;text-align:center;margin-bottom:10px}
+  .ptitle h2{margin:0;font-size:16px;color:var(--blue)}.ptitle p{margin:2px 0 0;font-size:12px;color:var(--mut)}
+  th,td{padding:5px 6px;border:1px solid #cfc8b0}
+  th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  tr{break-inside:avoid}
+}
 </style>
 </head>
 <body>
@@ -60,8 +75,9 @@ td.n,th.n{text-align:right}tr.click{cursor:pointer}.dot{color:var(--ok)}.none{co
   </div>
 </section>
 <section id="v2" class="hide">
+  <div class="ptitle"><h2>Keputusan Peperiksaan Al-Quran</h2><p>Halaqah Ustaz Munir (2B 2026) · <span id="pdate"></span></p></div>
   <div class="card wrap"><table id="tbl"></table></div>
-  <div class="row"><button class="p" id="csv">Muat turun CSV</button><button class="s" id="reset">Padam semua</button></div>
+  <div class="row"><button class="p" id="print">Cetak</button><button class="s" id="csv">Muat turun CSV</button><button class="s" id="reset">Padam semua</button></div>
 </section>
 </main>
 <script>
@@ -147,11 +163,12 @@ $('nextW').onclick=()=>{saveW();curW=(curW+1)%S.length;loadW()};
 function rows(){return S.map((s,i)=>{const c=calc(data[s[0]]),b=w60(W[s[0]]),j=r2(c.p+b);return{i,no:s[0],nama:s[1],...c,w:W[s[0]]??'',b,j,a:Math.round(j)}})}
 function render(){
   const rs=rows(),rank=x=>1+rs.filter(y=>y.j>x.j).length;
-  $('tbl').innerHTML='<tr><th>Bil</th><th>No Diri</th><th>Nama</th><th class="n">Syafawi 40%</th><th class="n">Bertulis 60%</th><th class="n">Jumlah</th><th class="n">Akhir</th><th class="n">Ked.</th></tr>'+
-  rs.map(x=>`<tr class="click" data-i="${x.i}"><td>${x.i+1}</td><td>${x.no}</td><td>${x.nama}</td><td class="n">${x.p}</td><td class="n">${x.b}</td><td class="n">${x.j}</td><td class="n"><b>${x.a}</b></td><td class="n">${rank(x)}</td></tr>`).join('');
+  $('tbl').innerHTML='<tr><th class="hm">Bil</th><th class="hm">No Diri</th><th>Nama</th><th class="n">Syafawi 40%</th><th class="n">Bertulis 60%</th><th class="n">Jumlah</th><th class="n">Akhir</th><th class="n">Ked.</th></tr>'+
+  rs.map(x=>`<tr class="click" data-i="${x.i}"><td class="hm">${x.i+1}</td><td class="hm">${x.no}</td><td>${x.nama}</td><td class="n">${x.p}</td><td class="n">${x.b}</td><td class="n">${x.j}</td><td class="n"><b>${x.a}</b></td><td class="n">${rank(x)}</td></tr>`).join('');
 }
 $('tbl').onclick=e=>{const tr=e.target.closest('tr[data-i]');if(tr){cur=+tr.dataset.i;show(1);load()}};
 function show(n){[1,2,3].forEach(i=>{$('v'+i).classList.toggle('hide',i!==n);$('t'+i).classList.toggle('on',i===n)})}
+$('print').onclick=()=>{$('pdate').textContent=new Date().toLocaleDateString('ms-MY',{day:'numeric',month:'long',year:'numeric'});render();window.print()};
 $('t1').onclick=()=>show(1);$('t2').onclick=()=>{render();show(2)};$('t3').onclick=()=>{curW=cur;loadW();show(3)};
 $('csv').onclick=()=>{
   const head=['Bil','No Diri','Nama',...FIELDS.map(f=>f.l),'Jumlah Hafazan /80','Jumlah /100','Markah 40%','Bertulis /100','Bertulis 60%','Jumlah','Markah Akhir','Catatan'];
