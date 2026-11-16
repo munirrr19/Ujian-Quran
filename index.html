@@ -126,7 +126,18 @@ $('csv').onclick=()=>{
   const csv='﻿'+lines.map(l=>l.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='keputusan-syafawi.csv';a.click();
 };
-$('reset').onclick=()=>{if(confirm('Padam semua markah dan kembali ke data asal Google Sheet?')){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}};
+$('reset').onclick=async()=>{
+  if(!API){if(confirm('Padam semua markah dan kembali ke data asal?')){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}return}
+  if(!confirm('Kosongkan SEMUA markah (hafazan, tajwid, fasahah, catatan) di laman DAN di Google Sheet? Tidak boleh dikembalikan.\n\nSalinan CSV akan dimuat turun dahulu.'))return;
+  $('csv').onclick();
+  try{
+    const res=await(await fetch(API,{method:'POST',body:JSON.stringify({pass:PASS,action:'clear'})})).json();
+    if(res.error)throw new Error(res.error);
+    try{localStorage.removeItem(KEY)}catch(e){}
+    location.reload();
+  }catch(e){alert('Gagal kosongkan Sheet: '+e.message)}
+};
+$('reset').textContent=API?'Kosongkan semua markah':'Padam semua';
 let PASS='';
 async function boot(){
   if(API){

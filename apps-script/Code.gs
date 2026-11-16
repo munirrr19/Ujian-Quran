@@ -30,6 +30,17 @@ function doPost(e) {
   try {
     const sh = SpreadsheetApp.getActive().getSheetByName(SHEET);
     const n = sh.getLastRow() - FIRST_ROW + 1;
+    if (d.action === 'clear') { // kosongkan semua markah pelajar (kolum input sahaja)
+      const ids2 = sh.getRange(FIRST_ROW, 2, n, 1).getValues();
+      const rows = ids2.map((r, k) => r[0] ? FIRST_ROW + k : 0).filter(Boolean);
+      if (rows.length) {
+        const last = Math.max.apply(null, rows), cnt = last - FIRST_ROW + 1;
+        sh.getRange(FIRST_ROW, 4, cnt, 8).clearContent();  // D:K
+        sh.getRange(FIRST_ROW, 13, cnt, 2).clearContent(); // M:N
+        sh.getRange(FIRST_ROW, 17, cnt, 1).clearContent(); // Q
+      }
+      return out_({ ok: true });
+    }
     const ids = sh.getRange(FIRST_ROW, 2, n, 1).getValues().map(r => String(r[0]));
     const i = ids.indexOf(String(d.no));
     if (i < 0) return out_({ error: 'Pelajar tidak dijumpai' });
