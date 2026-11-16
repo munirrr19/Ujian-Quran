@@ -27,9 +27,11 @@ button.s{background:var(--card);color:var(--ink);border:1px solid var(--line);bo
 table{width:100%;border-collapse:collapse;font-size:14px}
 th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}th{font-size:12px;color:var(--blue);background:var(--soft)}
 .ptitle{display:none}
+select{font-size:13px;padding:8px}
+td.nm{font-size:12px}
 td.n,th.n{text-align:right}tr.click{cursor:pointer}.dot{color:var(--ok)}.none{color:var(--mut)}
 .wrap{overflow-x:auto}.hide{display:none}.msg{color:var(--ok);font-size:13px;min-height:18px;margin-top:6px}
-@media(max-width:600px){.hm{display:none}table{font-size:12px}th,td{padding:6px 4px}th{font-size:11px}.card.wrap{padding:8px}}
+@media(max-width:600px){.hm{display:none}table{font-size:12px}td.nm{font-size:10.5px}th,td{padding:6px 4px}th{font-size:11px}.card.wrap{padding:8px}}
 @page{size:A4 landscape;margin:12mm}
 @media print{
   body{background:#fff;font-size:12px}
@@ -116,7 +118,7 @@ let W={};try{W=JSON.parse(localStorage.getItem(KEY+'-w'))||{}}catch(e){}
 const w60=v=>r2(num(v)*0.6);
 function calc(r){const h=r1([0,1,2,3,4,5,6,7].reduce((a,i)=>a+num(r['h'+i]),0));const t=r1(h+num(r.tj)+num(r.fs));return{h,t,p:r1(t*.4)}}
 let cur=0;
-const buildSel=()=>{const o=S.map((s,i)=>`<option value="${i}">${i+1}. ${s[1]}</option>`).join('');$('sel').innerHTML=o;$('selW').innerHTML=o};
+const buildSel=()=>{const o=S.map((s,i)=>`<option value="${i}">${s[1]}</option>`).join('');$('sel').innerHTML=o;$('selW').innerHTML=o};
 buildSel();
 $('inputs').innerHTML=FIELDS.map(f=>`<div><label>${f.l} /${f.max}</label><input type="number" inputmode="decimal" step="0.5" min="0" max="${f.max}" data-k="${f.k}" data-max="${f.max}"></div>`).join('');
 const ins=[...document.querySelectorAll('#inputs input')];
@@ -164,7 +166,7 @@ function rows(){return S.map((s,i)=>{const c=calc(data[s[0]]),b=w60(W[s[0]]),j=r
 function render(){
   const rs=rows(),rank=x=>1+rs.filter(y=>y.j>x.j).length;
   $('tbl').innerHTML='<tr><th class="hm">Bil</th><th class="hm">No Diri</th><th>Nama</th><th class="n">Syafawi 40%</th><th class="n">Bertulis 60%</th><th class="n">Jumlah</th><th class="n">Akhir</th><th class="n">Ked.</th></tr>'+
-  rs.map(x=>`<tr class="click" data-i="${x.i}"><td class="hm">${x.i+1}</td><td class="hm">${x.no}</td><td>${x.nama}</td><td class="n">${x.p}</td><td class="n">${x.b}</td><td class="n">${x.j}</td><td class="n"><b>${x.a}</b></td><td class="n">${rank(x)}</td></tr>`).join('');
+  rs.map(x=>`<tr class="click" data-i="${x.i}"><td class="hm">${x.i+1}</td><td class="hm">${x.no}</td><td class="nm">${x.nama}</td><td class="n">${x.p}</td><td class="n">${x.b}</td><td class="n">${x.j}</td><td class="n"><b>${x.a}</b></td><td class="n">${rank(x)}</td></tr>`).join('');
 }
 $('tbl').onclick=e=>{const tr=e.target.closest('tr[data-i]');if(tr){cur=+tr.dataset.i;show(1);load()}};
 function show(n){[1,2,3].forEach(i=>{$('v'+i).classList.toggle('hide',i!==n);$('t'+i).classList.toggle('on',i===n)})}
