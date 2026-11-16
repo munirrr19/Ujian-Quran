@@ -128,8 +128,7 @@ $('csv').onclick=()=>{
 };
 $('reset').onclick=async()=>{
   if(!API){if(confirm('Padam semua markah dan kembali ke data asal?')){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}return}
-  if(!confirm('Kosongkan SEMUA markah (hafazan, tajwid, fasahah, catatan) di laman DAN di Google Sheet? Tidak boleh dikembalikan.\n\nSalinan CSV akan dimuat turun dahulu.'))return;
-  $('csv').onclick();
+  if(!confirm('Kosongkan SEMUA markah (hafazan, tajwid, fasahah, catatan) di laman DAN di Google Sheet? Tidak boleh dikembalikan.'))return;
   try{
     const res=await(await fetch(API,{method:'POST',body:JSON.stringify({pass:PASS,action:'clear'})})).json();
     if(res.error)throw new Error(res.error);
