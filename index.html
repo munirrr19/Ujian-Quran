@@ -46,6 +46,7 @@ th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}th{fon
 .pickrow{display:flex;gap:8px;align-items:stretch}.pickrow .nv{flex:none;width:44px;padding:0;font-size:22px;line-height:1;display:grid;place-items:center;border-radius:10px;color:var(--blue)}
 .pickrow .pick{flex:1;min-width:0;line-height:1.3;min-height:44px}
 .pick{width:100%;text-align:left;font:inherit;font-size:12.5px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:var(--ink);cursor:pointer}
+.toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:18px 26px;box-shadow:0 8px 30px rgba(0,0,0,.3);z-index:30;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;text-align:center;max-width:80vw;font-size:15px}.toast.on{opacity:1;transform:translate(-50%,-50%) scale(1)}.toast b{display:block;font-size:30px;color:var(--ok)}.toast.err b{color:#c0392b}
 .ov{position:fixed;inset:0;background:var(--ov);display:none;z-index:20;align-items:flex-end}
 .ov.on{display:flex}
 .sheet{background:var(--card);width:100%;max-height:70vh;overflow:auto;border-radius:14px 14px 0 0;padding:6px}
@@ -106,6 +107,7 @@ td.n,th.n{text-align:right}tr.click{cursor:pointer}.dot{color:var(--ok)}.none{co
   <div class="row"><button class="p" id="print">Cetak</button><button class="s" id="csv">Muat turun CSV</button><button class="s" id="reset">Padam semua</button></div>
 </section>
 </main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="ov" id="ov"><div class="sheet" id="sheet"></div></div>
 <script>
 // Tampal URL Web App Apps Script di sini (lihat README). Kosong = guna data contoh + simpanan pelayar sahaja.
@@ -136,6 +138,7 @@ let data;try{data=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!data){data={};S.forEach(s=>{const r={};s[2].forEach((v,i)=>r['h'+i]=v);r.tj=s[3];r.fs=s[4];r.cat='';data[s[0]]=r})}
 const $=id=>document.getElementById(id);
 const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}};
+let tt;function toast(m,err){const t=$('toast');t.className='toast on'+(err?' err':'');t.innerHTML='<b>'+(err?'✗':'✓')+'</b>'+m;clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2000)}
 const num=v=>v===''||v==null||isNaN(v)?0:+v;
 const r1=x=>Math.round(x*10)/10;
 const r2=x=>Math.round(x*100)/100;
@@ -153,14 +156,14 @@ ins.forEach(i=>i.addEventListener('input',()=>{if(num(i.value)>+i.dataset.max)i.
 async function save(){
   const r={cat:$('cat').value};ins.forEach(i=>r[i.dataset.k]=i.value===''?'':+i.value);
   const no=S[cur][0];data[no]=r;persist();render();
-  if(!API){$('msg').textContent='✓ Disimpan (pelayar sahaja)';return}
+  if(!API){$('msg').textContent='✓ Disimpan (pelayar sahaja)';toast('Data disimpan');return}
   $('msg').textContent='Menyimpan ke Google Sheet…';
   try{
     const body={pass:PASS,no,h:[0,1,2,3,4,5,6,7].map(i=>r['h'+i]),tj:r.tj,fs:r.fs,cat:r.cat};
     const res=await(await fetch(API,{method:'POST',body:JSON.stringify(body)})).json();
     if(res.error)throw new Error(res.error);
-    $('msg').textContent='✓ Disimpan ke Google Sheet';
-  }catch(e){$('msg').textContent='✗ Gagal simpan ke Sheet: '+e.message}
+    $('msg').textContent='✓ Disimpan ke Google Sheet';toast('Data berjaya disimpan ke Google Sheet');
+  }catch(e){$('msg').textContent='✗ Gagal simpan ke Sheet: '+e.message;toast('Gagal simpan ke Sheet',1)}
 }
 $('sel').onchange=e=>{cur=+e.target.value;load()};
 $('save').onclick=save;
@@ -177,13 +180,13 @@ $('wIn').addEventListener('input',()=>{const i=$('wIn');if(num(i.value)>100)i.va
 async function saveW(){
   const no=S[curW][0],v=$('wIn').value===''?'':+$('wIn').value;
   W[no]=v;try{localStorage.setItem(KEY+'-w',JSON.stringify(W))}catch(e){}render();
-  if(!API){$('msgW').textContent='✓ Disimpan (pelayar sahaja)';return}
+  if(!API){$('msgW').textContent='✓ Disimpan (pelayar sahaja)';toast('Data disimpan');return}
   $('msgW').textContent='Menyimpan ke Google Sheet…';
   try{
     const res=await(await fetch(API,{method:'POST',body:JSON.stringify({pass:PASS,action:'written',no,w:v})})).json();
     if(res.error)throw new Error(res.error);
-    $('msgW').textContent='✓ Disimpan ke Google Sheet';
-  }catch(e){$('msgW').textContent='✗ Gagal simpan ke Sheet: '+e.message}
+    $('msgW').textContent='✓ Disimpan ke Google Sheet';toast('Data berjaya disimpan ke Google Sheet');
+  }catch(e){$('msgW').textContent='✗ Gagal simpan ke Sheet: '+e.message;toast('Gagal simpan ke Sheet',1)}
 }
 $('selW').onchange=e=>{curW=+e.target.value;loadW()};
 $('saveW').onclick=saveW;
