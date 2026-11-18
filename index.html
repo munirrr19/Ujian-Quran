@@ -153,22 +153,22 @@ const ins=[...document.querySelectorAll('#inputs input')];
 function load(){const r=data[S[cur][0]];$('sel').value=cur;$('pk1').textContent=S[cur][1]+'  ▾';ins.forEach(i=>i.value=r[i.dataset.k]??'');$('cat').value=r.cat||'';tot();$('msg').textContent=''}
 function tot(){const r={};ins.forEach(i=>r[i.dataset.k]=i.value);const c=calc(r);$('sH').textContent=c.h;$('sT').textContent=c.t;$('sP').textContent=c.p}
 ins.forEach(i=>i.addEventListener('input',()=>{if(num(i.value)>+i.dataset.max)i.value=i.dataset.max;if(num(i.value)<0)i.value=0;tot()}));
-async function save(){
+async function save(q){
   const r={cat:$('cat').value};ins.forEach(i=>r[i.dataset.k]=i.value===''?'':+i.value);
   const no=S[cur][0];data[no]=r;persist();render();
-  if(!API){$('msg').textContent='✓ Disimpan (pelayar sahaja)';toast('Data disimpan');return}
+  if(!API){$('msg').textContent='✓ Disimpan (pelayar sahaja)';q||toast('Data disimpan');return}
   $('msg').textContent='Menyimpan ke Google Sheet…';
   try{
     const body={pass:PASS,no,h:[0,1,2,3,4,5,6,7].map(i=>r['h'+i]),tj:r.tj,fs:r.fs,cat:r.cat};
     const res=await(await fetch(API,{method:'POST',body:JSON.stringify(body)})).json();
     if(res.error)throw new Error(res.error);
-    $('msg').textContent='✓ Disimpan ke Google Sheet';toast('Data berjaya disimpan ke Google Sheet');
+    $('msg').textContent='✓ Disimpan ke Google Sheet';q||toast('Data berjaya disimpan ke Google Sheet');
   }catch(e){$('msg').textContent='✗ Gagal simpan ke Sheet: '+e.message;toast('Gagal simpan ke Sheet',1)}
 }
 $('sel').onchange=e=>{cur=+e.target.value;load()};
-$('save').onclick=save;
-$('prev').onclick=()=>{save();cur=(cur+S.length-1)%S.length;load()};
-$('next').onclick=()=>{save();cur=(cur+1)%S.length;load()};
+$('save').onclick=()=>save();
+$('prev').onclick=()=>{save(1);cur=(cur+S.length-1)%S.length;load()};
+$('next').onclick=()=>{save(1);cur=(cur+1)%S.length;load()};
 // ---- Bertulis 60% ----
 let curW=0;
 function pickList(cb,idx){const ov=$('ov'),sh=$('sheet');sh.innerHTML=S.map((s,i)=>`<button type="button" data-i="${i}" class="${i===idx?'on':''}">${s[1]}</button>`).join('');ov.classList.add('on');sh.onclick=e=>{const b=e.target.closest('button[data-i]');if(b){ov.classList.remove('on');cb(+b.dataset.i)}};ov.onclick=e=>{if(e.target===ov)ov.classList.remove('on')}}
@@ -177,21 +177,21 @@ $('pk2').onclick=()=>pickList(i=>{curW=i;loadW()},curW);
 function loadW(){const no=S[curW][0];$('selW').value=curW;$('pk2').textContent=S[curW][1]+'  ▾';$('wIn').value=W[no]??'';showW();$('msgW').textContent=''}
 function showW(){const no=S[curW][0],v=$('wIn').value,x=w60(v);$('w60').textContent=x;$('wJum').textContent=r2(calc(data[no]).p+x)}
 $('wIn').addEventListener('input',()=>{const i=$('wIn');if(num(i.value)>100)i.value=100;if(num(i.value)<0)i.value=0;showW()});
-async function saveW(){
+async function saveW(q){
   const no=S[curW][0],v=$('wIn').value===''?'':+$('wIn').value;
   W[no]=v;try{localStorage.setItem(KEY+'-w',JSON.stringify(W))}catch(e){}render();
-  if(!API){$('msgW').textContent='✓ Disimpan (pelayar sahaja)';toast('Data disimpan');return}
+  if(!API){$('msgW').textContent='✓ Disimpan (pelayar sahaja)';q||toast('Data disimpan');return}
   $('msgW').textContent='Menyimpan ke Google Sheet…';
   try{
     const res=await(await fetch(API,{method:'POST',body:JSON.stringify({pass:PASS,action:'written',no,w:v})})).json();
     if(res.error)throw new Error(res.error);
-    $('msgW').textContent='✓ Disimpan ke Google Sheet';toast('Data berjaya disimpan ke Google Sheet');
+    $('msgW').textContent='✓ Disimpan ke Google Sheet';q||toast('Data berjaya disimpan ke Google Sheet');
   }catch(e){$('msgW').textContent='✗ Gagal simpan ke Sheet: '+e.message;toast('Gagal simpan ke Sheet',1)}
 }
 $('selW').onchange=e=>{curW=+e.target.value;loadW()};
-$('saveW').onclick=saveW;
-$('prevW').onclick=()=>{saveW();curW=(curW+S.length-1)%S.length;loadW()};
-$('nextW').onclick=()=>{saveW();curW=(curW+1)%S.length;loadW()};
+$('saveW').onclick=()=>saveW();
+$('prevW').onclick=()=>{saveW(1);curW=(curW+S.length-1)%S.length;loadW()};
+$('nextW').onclick=()=>{saveW(1);curW=(curW+1)%S.length;loadW()};
 // ---- Keputusan ----
 function rows(){return S.map((s,i)=>{const c=calc(data[s[0]]),b=w60(W[s[0]]),j=r2(c.p+b);return{i,no:s[0],nama:s[1],...c,w:W[s[0]]??'',b,j,a:Math.round(j)}})}
 function render(){
